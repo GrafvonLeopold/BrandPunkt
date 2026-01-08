@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Supabase Test</title>
+</head>
+<body>
+<h1>Supabase Test</h1>
+
+<select id="probe"></select>
+<div id="themes"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+<script>
+  // Supabase-Verbindung
+  const SUPABASE_URL = 'https://noctskmwqycbyhxsnlnt.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vY3Rza213cXljYnloeHNubG50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NzEzMjUsImV4cCI6MjA4MzQ0NzMyNX0.6bB8AhL5IZoHYxdP10ozNza1Tk--wkbTrN4YuOpLmy4'; // nur ANON Key für Public Pages
+  const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const probeSelect = document.getElementById('probe');
+  const themesDiv = document.getElementById('themes');
+
+  async function loadProbes() {
+    const { data: probes, error } = await supabase
+      .from('probes')
+      .select('*');
+
+    if(error){ console.error(error); return; }
+
+    probeSelect.innerHTML = '';
+    probes.forEach(p=>{
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.title;
+      probeSelect.appendChild(opt);
+    });
+
+    if(probes.length>0) loadThemes(probes[0].id);
+  }
+
+  async function loadThemes(probeId) {
+    const { data: themes, error } = await supabase
+      .from('themes')
+      .select('*')
+      .eq('probe_id', probeId);
+
+    if(error){ console.error(error); return; }
+
+    themesDiv.innerHTML = '';
+    themes.forEach(t=>{
+      const div = document.createElement('div');
+      div.textContent = `${t.name} (max ${t.max_participants})`;
+      themesDiv.appendChild(div);
+    });
+  }
+
+  probeSelect.addEventListener('change', e => loadThemes(parseInt(e.target.value)));
+
+  loadProbes();
+</script>
+</body>
+</html>
